@@ -1,0 +1,17 @@
+[General]
+archive=tar zcvf '%S.tar.gz' %F
+extIsRegExp=false
+extensions=.eps .pdf .dvi .ps .fig .log .aux .gif .jpg .png .fig
+name=Soleau
+
+[item:descriptif.tex]
+archive=true
+encoding=ISO 8859-15
+highlight=LaTeX-Kile
+open=true
+
+[item:soleau.kilepr]
+archive=true
+encoding=ISO 8859-15
+highlight=None
+open=false

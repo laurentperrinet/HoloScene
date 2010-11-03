@@ -1,0 +1,13 @@
+\select@language {french}
+\contentsline {section}{\numberline {1}Principe de l'immersion par vision active}{2}
+\contentsline {subsection}{\numberline {1.1}Voir et pr\'evoir}{2}
+\contentsline {subsection}{\numberline {1.2}Inf\'erences perceptives et boucle sensori-motrice}{3}
+\contentsline {subsection}{\numberline {1.3}"L'illusion" tri-dimensionnelle}{4}
+\contentsline {section}{\numberline {2}M\'ethodes}{4}
+\contentsline {subsection}{\numberline {2.1}D\'etection spatio-temporelle du point de vue}{4}
+\contentsline {subsection}{\numberline {2.2}Mod\`ele tri-dimensionnel de projection sur l'\'ecran}{4}
+\contentsline {subsection}{\numberline {2.3}Int\'egration en temps r\'eel}{4}
+\contentsline {section}{\numberline {3}R\'esultats}{4}
+\contentsline {subsection}{\numberline {3.1}Prototype}{4}
+\contentsline {subsection}{\numberline {3.2}Mode de d\'eveloppement : le logiciel libre}{4}
+\contentsline {subsection}{\numberline {3.3}Applications ludiques et industrielles}{4}
