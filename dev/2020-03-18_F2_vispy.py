@@ -100,7 +100,7 @@ class Canvas(app.Canvas):
         tic = time.time()
         #  Get the reply.
         while (message == "ERROR"):
-            print("Sending request …")
+            print("Sending request … GO!")
             self.socket.send(b"GO!")
 
             message = self.socket.recv()
