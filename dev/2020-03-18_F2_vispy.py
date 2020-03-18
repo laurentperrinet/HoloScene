@@ -15,11 +15,11 @@ RESOLUTION = 1000
 n_x = 1600
 n_y = 800
 
-n_x = 800
-n_y = 550
+# n_x = 800
+# n_y = 550
 
 import zmq
-
+import sys
 from vispy import app, gloo, visuals
 from vispy.geometry import create_box
 from vispy.visuals.transforms import MatrixTransform
@@ -30,7 +30,7 @@ class Canvas(app.Canvas):
         # screen
         app.Canvas.__init__(self,
                             keys='interactive',
-                            size=(n_x, n_y))#, fullscreen=True)
+                            size=(n_x, n_y), fullscreen=True)
         self.n_x, self.n_y = n_x, n_y
 
         # capture
@@ -53,11 +53,14 @@ class Canvas(app.Canvas):
                                      vertex_colors=vertices['color'],
                                      edge_color='b')
 
-        self.THETA = 90 #np.pi / 4
+        self.THETA = 90
+        self.THETA = -45
+        self.SCALE = .5 * np.sqrt(self.n_x**2 + self.n_y**2)
         self.theta = 0
         self.phi = 0
         self.x = 0
         self.y = 0
+        self.s = 1
 
         self.transform = MatrixTransform()
 
@@ -80,8 +83,9 @@ class Canvas(app.Canvas):
         self.transform.reset()
         self.transform.rotate(self.theta, (0, 0, 1))
         self.transform.rotate(self.phi, (0, 1, 0))
-        self.transform.scale((100, 100, 0.001))
-        self.transform.translate((200, 200))
+        scale = self.s * self.SCALE
+        self.transform.scale((scale, scale, 0.001))
+        self.transform.translate((self.n_x/2, self.n_y/2))
         self.update()
 
     def on_resize(self, event):
@@ -105,8 +109,8 @@ class Canvas(app.Canvas):
 
             if message == "ERROR":
                 print(message)
-                # vispy.app.quit()
-                # sys.exit()
+                app.quit()
+                sys.exit()
 
         x, y, s = message.split(', ')
         x, y, s = int(x), int(y), int(s) # str > int
