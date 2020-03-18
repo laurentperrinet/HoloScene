@@ -45,7 +45,6 @@ while True:
     print("Received request: %s" % message)
 
     # Grab a single frame of video
-    ret, frame = video_capture.read()# Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
     rgb_frame = grab()
 
     # detect face

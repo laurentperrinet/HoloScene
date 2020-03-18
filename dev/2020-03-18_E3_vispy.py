@@ -1,16 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-
 import time
-
-# https://github.com/vispy/vispy/blob/master/examples/basics/visuals/box.py
-# Copyright (c) Vispy Development Team. All Rights Reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
-"""
-Simple demonstration of Box visual.
-"""
-
-
 import zmq
 
 from vispy import app, gloo, visuals
@@ -18,11 +8,10 @@ from vispy.geometry import create_box
 from vispy.visuals.transforms import MatrixTransform
 
 class Canvas(app.Canvas):
-
     def __init__(self, n_x=800, n_y=550):
+        app.Canvas.__init__(self, keys='interactive', size=(n_x, n_y))
         # screen
         self.n_x, self.n_y = n_x, n_y
-        app.Canvas.__init__(self, keys='interactive', size=(n_x, n_y))
         # capture
         self.zmqcontext = zmq.Context()
 
@@ -63,10 +52,10 @@ class Canvas(app.Canvas):
         return frame[::DS, ::DS, ::-1]# Find all the faces in the current frame of video
 
     def rotate(self, event):
-        self.theta += .5
-        self.phi += .5
-        # self.theta = self.x * self.THETA
-        # self.phi = self.y * self.THETA
+        # self.theta += .5
+        # self.phi += .5
+        self.theta = self.x * self.THETA
+        self.phi = self.y * self.THETA
         self.transform.reset()
         self.transform.rotate(self.theta, (0, 0, 1))
         self.transform.rotate(self.phi, (0, 1, 0))
@@ -83,12 +72,7 @@ class Canvas(app.Canvas):
 
     def on_draw(self, ev):
         tic = time.time()
-        # Grab a single frame of video
-        # rgb_frame = self.grab()
 
-        # detect face and extract position
-        # self.x, self.y, self.s = self.f.center_normalized(rgb_frame)
-        # print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
         print("Sending request …")
         self.socket.send(b"GO!")
 

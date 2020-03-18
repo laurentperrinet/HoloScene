@@ -12,6 +12,12 @@ Simple demonstration of Box visual.
 
 RESOLUTION = 1000
 
+n_x = 1600
+n_y = 800
+
+n_x = 800
+n_y = 550
+
 import zmq
 
 from vispy import app, gloo, visuals
@@ -20,10 +26,13 @@ from vispy.visuals.transforms import MatrixTransform
 
 class Canvas(app.Canvas):
 
-    def __init__(self, n_x=800, n_y=550):
+    def __init__(self, n_x=n_x, n_y=n_y):
         # screen
+        app.Canvas.__init__(self,
+                            keys='interactive',
+                            size=(n_x, n_y))#, fullscreen=True)
         self.n_x, self.n_y = n_x, n_y
-        app.Canvas.__init__(self, keys='interactive', size=(n_x, n_y))
+
         # capture
         self.zmqcontext = zmq.Context()
 
@@ -83,17 +92,28 @@ class Canvas(app.Canvas):
         self.box.transforms.configure(canvas=self, viewport=vp)
 
     def on_draw(self, ev):
+        message = "ERROR"
         tic = time.time()
-        print("Sending request …")
-        self.socket.send(b"GO!")
-
         #  Get the reply.
-        message = self.socket.recv()
-        x, y, s = message.decode().split(', ')
-        x, y, s = int(x), int(y), int(s)
-        self.x, self.y, self.s = (2*x-1)/RESOLUTION, (2*y-1)/RESOLUTION, s/RESOLUTION
-        print(f'x, y, s = {x}, {y}, {s}')
+        while (message == "ERROR"):
+            print("Sending request …")
+            self.socket.send(b"GO!")
 
+            message = self.socket.recv()
+            message = message.decode()
+            print(message)
+
+            if message == "ERROR":
+                print(message)
+                # vispy.app.quit()
+                # sys.exit()
+
+        x, y, s = message.split(', ')
+        x, y, s = int(x), int(y), int(s) # str > int
+        x, y, s = x/RESOLUTION, y/RESOLUTION, s/RESOLUTION
+        x, y, s = 2*x-1, 2*y-1, s
+        print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
+        self.x, self.y, self.s = x, y, s
         gloo.clear(color='white', depth=True)
         self.box.draw()
         toc = time.time()
