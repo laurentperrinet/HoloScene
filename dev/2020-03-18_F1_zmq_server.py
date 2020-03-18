@@ -1,6 +1,8 @@
 import cv2
 video_capture = cv2.VideoCapture(0)
 
+video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 180)
 
 import dlib
 import numpy as np
@@ -30,12 +32,6 @@ class FaceExtractor:
         else:
             return 0, 0, 0, 0
 
-    def center_size(self, t, b, l, r):
-        return t + (b-t)/2, l + (r-l)/2, (b-t)**2 + (r-l)**2
-
-    def center_normalized(self, x, y, s):
-        return x/N_X, y/N_Y, s/(N_X**2 + N_Y**2)
-
 f = FaceExtractor(N_X, N_Y)
 
 import time
@@ -46,20 +42,18 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 
 while True:
-    tic = time.time()
     #  Wait for next request from client
     message = socket.recv()
     print("Received request: %s" % message)
 
+    tic = time.time()
     # Grab a single frame of video
     ret, frame = video_capture.read()# Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
     rgb_frame = grab()
 
     # detect face
     t, b, l, r = f.get_bbox(rgb_frame)
-    toc = time.time()
 
-    print(f'FPS:{1/(toc-tic):.1f}')
     if not (t==0 and b==0 and l==0 and r==0):
         x, y, s = f.center_size(t, b, l, r)
         print(f'x, y, s = {x:.1f}, {y:.1f}, {s:.1f}')
@@ -68,3 +62,6 @@ while True:
         x, y, s = int(x*RESOLUTION), int(y*RESOLUTION), int(s*RESOLUTION)
         #  Send reply back to client
         socket.send(f"{x}, {y}, {s}".encode())
+
+    toc = time.time()
+    print(f'FPS:{1/(toc-tic):.1f}')

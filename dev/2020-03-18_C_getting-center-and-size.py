@@ -1,11 +1,13 @@
 import cv2
 video_capture = cv2.VideoCapture(0)
+video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 180)
 
 
 import dlib
 import numpy as np
 
-def grab(DS=4):
+def grab(DS=1):
     ret, frame = video_capture.read()# Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
     return frame[::DS, ::DS, ::-1]# Find all the faces in the current frame of video
 
@@ -42,7 +44,6 @@ while True:
     tic = time.time()
 
     # Grab a single frame of video
-    ret, frame = video_capture.read()# Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
     rgb_frame = grab()
 
     # detect face
