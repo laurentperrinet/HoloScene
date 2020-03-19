@@ -50,7 +50,8 @@ class Canvas(app.Canvas):
         self.z0 = .65 # in meter
         self.s0 = .15 # normalized unit
         #self.THETA = 90
-        self.VA = 45 # visual angle (in degrees) of the camera
+        self.VA_X = 30 * np.pi/180 # vertical visual angle (in radians) of the camera
+        self.VA_Y = 45 * np.pi/180 # horizontal visual angle (in radians) of the camera
         self.SCALE = .2 * np.sqrt(self.n_x**2 + self.n_y**2)
         self.theta = 0
         self.phi = 0
@@ -110,12 +111,14 @@ class Canvas(app.Canvas):
         x, y, s = message.split(', ')
         x, y, s = int(x), int(y), int(s) # str > int
         x, y, s = x/RESOLUTION, y/RESOLUTION, s/RESOLUTION
-        x, y, s = 2*x-1, 2*y-1, s
+        x, y, s = x-.5, y-.5, s
         # print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
 
         z = self.z0 * np.tan(self.s0 / 2 * self.VA) / np.tan(s / 2 * self.VA)
-        x =  z * np.tan(x * self.VA)
-        y =  z * np.tan(y * self.VA)
+        z = self.z0 * self.s0 / s
+        x = - z * np.tan(x * self.VA_X)
+        y = - z * np.tan(y * self.VA_Y)
+
         print(f'x, y, z (Eye) = {x:.3f}, {y:.3f}, {z:.3f}')
 
         self.x, self.y, self.z = x, y, z
