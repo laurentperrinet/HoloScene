@@ -1,14 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-
 import time
-
-# https://github.com/vispy/vispy/blob/master/examples/basics/visuals/box.py
-# Copyright (c) Vispy Development Team. All Rights Reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
-"""
-Simple demonstration of Box visual.
-"""
 
 RESOLUTION = 1000
 
@@ -41,6 +33,7 @@ class Canvas(app.Canvas):
         self.socket = self.zmqcontext.socket(zmq.REQ)
         self.socket.connect("tcp://localhost:5555")
 
+        # scene
         vertices, faces, outline = create_box(width=1, height=1, depth=1,
                                               width_segments=4,
                                               height_segments=8,
@@ -53,14 +46,19 @@ class Canvas(app.Canvas):
                                      vertex_colors=vertices['color'],
                                      edge_color='b')
 
-        self.THETA = 90
-        self.THETA = -45
-        self.SCALE = .5 * np.sqrt(self.n_x**2 + self.n_y**2)
+
+        self.z0 = .65 # in meter
+        self.s0 = .15 # normalized unit
+        #self.THETA = 90
+        self.VA = 45 # visual angle (in degrees) of the camera
+        self.SCALE = .2 * np.sqrt(self.n_x**2 + self.n_y**2)
         self.theta = 0
         self.phi = 0
+        self.rotation_speed = .5
+        # straight ahead
         self.x = 0
         self.y = 0
-        self.s = 1
+        self.z = self.z0
 
         self.transform = MatrixTransform()
 
@@ -71,14 +69,16 @@ class Canvas(app.Canvas):
         self.timer.start(0.016)
 
     def rotate(self, event):
-        # self.theta += .5
-        # self.phi += .5
-        self.theta = self.x * self.THETA
-        self.phi = self.y * self.THETA
+        # self.theta = self.x * self.THETA
+        # self.phi = self.y * self.THETA
+
+        # TODO:  make a random walk using a OU process
+        self.theta += self.rotation_speed
+        self.phi += self.rotation_speed
         self.transform.reset()
         self.transform.rotate(self.theta, (0, 0, 1))
         self.transform.rotate(self.phi, (0, 1, 0))
-        scale = self.s * self.SCALE
+        scale = self.SCALE
         self.transform.scale((scale, scale, 0.001))
         self.transform.translate((self.n_x/2, self.n_y/2))
         self.update()
@@ -111,8 +111,14 @@ class Canvas(app.Canvas):
         x, y, s = int(x), int(y), int(s) # str > int
         x, y, s = x/RESOLUTION, y/RESOLUTION, s/RESOLUTION
         x, y, s = 2*x-1, 2*y-1, s
-        print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
-        self.x, self.y, self.s = x, y, s
+        # print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
+
+        z = self.z0 * np.tan(self.s0 / 2 * self.VA) / np.tan(s / 2 * self.VA)
+        x =  z * np.tan(x * self.VA)
+        y =  z * np.tan(y * self.VA)
+        print(f'x, y, z (Eye) = {x:.3f}, {y:.3f}, {z:.3f}')
+
+        self.x, self.y, self.z = x, y, z
         gloo.clear(color='white', depth=True)
         self.box.draw()
         toc = time.time()
