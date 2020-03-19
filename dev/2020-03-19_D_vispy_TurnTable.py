@@ -1,54 +1,161 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
 # Copyright (c) Vispy Development Team. All Rights Reserved.
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
+# -----------------------------------------------------------------------------
+# vispy: gallery 2
+
 """
-This example shows how to configure VisPy to run from IPython (or Python) in
-interactive mode, while simultaneously updating the VisPy event loop.  This
-behavior is supported by default in all code that calls vispy.app.run(), but
-here it's setup manually.
+Example volume rendering
 
-Run this file with `ipython -i interactive.py` to get a console and a window.
+Controls:
+
+* 1  - toggle camera between first person (fly), regular 3D (turntable) and
+       arcball
+* 2  - toggle between volume rendering methods
+* 3  - toggle between stent-CT / brain-MRI image
+* 4  - toggle between colormaps
+* 0  - reset cameras
+* [] - decrease/increase isosurface threshold
+
+With fly camera:
+
+* WASD or arrow keys - move around
+* SPACE - brake
+* FC - move up-down
+* IJKL or mouse - look around
 """
 
-import math
-from vispy import app, gloo
-from vispy.color import Color
+from itertools import cycle
+
+import numpy as np
+
+from vispy import app, scene, io
+from vispy.color import get_colormaps, BaseColormap
+from vispy.visuals.transforms import STTransform
+
+# Read volume
+vol1 = np.load(io.load_data_file('volume/stent.npz'))['arr_0']
+vol2 = np.load(io.load_data_file('brain/mri.npz'))['data']
+vol2 = np.flipud(np.rollaxis(vol2, 1))
+
+# Prepare canvas
+canvas = scene.SceneCanvas(keys='interactive', size=(800, 600), show=True)
+canvas.measure_fps()
+
+# Set up a viewbox to display the image with interactive pan/zoom
+view = canvas.central_widget.add_view()
+
+# Set whether we are emulating a 3D texture
+emulate_texture = False
+
+# Create the volume visuals, only one is visible
+volume1 = scene.visuals.Volume(vol1, parent=view.scene, threshold=0.225,
+                               emulate_texture=emulate_texture)
+volume1.transform = scene.STTransform(translate=(64, 64, 0))
+volume2 = scene.visuals.Volume(vol2, parent=view.scene, threshold=0.2,
+                               emulate_texture=emulate_texture)
+volume2.visible = False
+
+# Create three cameras (Fly, Turntable and Arcball)
+fov = 60.
+cam1 = scene.cameras.FlyCamera(parent=view.scene, fov=fov, name='Fly')
+cam2 = scene.cameras.TurntableCamera(parent=view.scene, fov=fov,
+                                     name='Turntable')
+cam3 = scene.cameras.ArcballCamera(parent=view.scene, fov=fov, name='Arcball')
+view.camera = cam2  # Select turntable at first
+
+# Create an XYZAxis visual
+axis = scene.visuals.XYZAxis(parent=view)
+s = STTransform(translate=(50, 50), scale=(50, 50, 50, 1))
+affine = s.as_matrix()
+axis.transform = affine
 
 
-class Canvas(app.Canvas):
-
-    def __init__(self, *args, **kwargs):
-        app.Canvas.__init__(self, *args, **kwargs)
-        self._timer = app.Timer('auto', connect=self.on_timer, start=True)
-        self.color = 'white'
-
-    def on_draw(self, event):
-        gloo.clear(color=True)
-
-    def on_timer(self, event):
-        # Animation speed based on global time.
-        t = event.elapsed
-        c = Color(self.color).rgb
-        # Simple sinusoid wave animation.
-        s = abs(0.5 + 0.5 * math.sin(t))
-        self.context.set_clear_color((c[0] * s, c[1] * s, c[2] * s, 1))
-        self.update()
+# create colormaps that work well for translucent and additive volume rendering
+class TransFire(BaseColormap):
+    glsl_map = """
+    vec4 translucent_fire(float t) {
+        return vec4(pow(t, 0.5), t, t*t, max(0, t*1.05 - 0.05));
+    }
+    """
 
 
-# You should run this demo as main with ipython -i <file>.  If interactive
-# mode is not specified, this demo will exit immediately because this demo
-# doesn't call run and relies on the input hook being setup.
+class TransGrays(BaseColormap):
+    glsl_map = """
+    vec4 translucent_grays(float t) {
+        return vec4(t, t, t, t*0.05);
+    }
+    """
+
+# Setup colormap iterators
+opaque_cmaps = cycle(get_colormaps())
+translucent_cmaps = cycle([TransFire(), TransGrays()])
+opaque_cmap = next(opaque_cmaps)
+translucent_cmap = next(translucent_cmaps)
+
+
+# Implement axis connection with cam2
+@canvas.events.mouse_move.connect
+def on_mouse_move(event):
+    if event.button == 1 and event.is_dragging:
+        axis.transform.reset()
+
+        axis.transform.rotate(cam2.roll, (0, 0, 1))
+        axis.transform.rotate(cam2.elevation, (1, 0, 0))
+        axis.transform.rotate(cam2.azimuth, (0, 1, 0))
+
+        axis.transform.scale((50, 50, 0.001))
+        axis.transform.translate((50., 50.))
+        axis.update()
+
+
+# Implement key presses
+@canvas.events.key_press.connect
+def on_key_press(event):
+    global opaque_cmap, translucent_cmap
+    if event.text == '1':
+        cam_toggle = {cam1: cam2, cam2: cam3, cam3: cam1}
+        view.camera = cam_toggle.get(view.camera, cam2)
+        print(view.camera.name + ' camera')
+        if view.camera is cam2:
+            axis.visible = True
+        else:
+            axis.visible = False
+    elif event.text == '2':
+        methods = ['mip', 'translucent', 'iso', 'additive']
+        method = methods[(methods.index(volume1.method) + 1) % 4]
+        print("Volume render method: %s" % method)
+        cmap = opaque_cmap if method in ['mip', 'iso'] else translucent_cmap
+        volume1.method = method
+        volume1.cmap = cmap
+        volume2.method = method
+        volume2.cmap = cmap
+    elif event.text == '3':
+        volume1.visible = not volume1.visible
+        volume2.visible = not volume1.visible
+    elif event.text == '4':
+        if volume1.method in ['mip', 'iso']:
+            cmap = opaque_cmap = next(opaque_cmaps)
+        else:
+            cmap = translucent_cmap = next(translucent_cmaps)
+        volume1.cmap = cmap
+        volume2.cmap = cmap
+    elif event.text == '0':
+        cam1.set_range()
+        cam3.set_range()
+    elif event.text != '' and event.text in '[]':
+        s = -0.025 if event.text == '[' else 0.025
+        volume1.threshold += s
+        volume2.threshold += s
+        th = volume1.threshold if volume1.visible else volume2.threshold
+        print("Isosurface threshold: %0.3f" % th)
+
+# for testing performance
+# @canvas.connect
+# def on_draw(ev):
+# canvas.update()
+
 if __name__ == '__main__':
-    from vispy import app
-    # app.use_app('glfw')  # for testing specific backends
-    app.set_interactive()
-
-
-# All variables listed in this scope are accessible via the console.
-canvas = Canvas(keys='interactive')
-canvas.show()
-
-
-# In IPython, try typing any of the following:
-#   >>> canvas.color = (1.0, 0.0, 0.0)
-#   >>> canvas.color = 'red'
+    print(__doc__)
+    app.run()
