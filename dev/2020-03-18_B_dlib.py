@@ -15,7 +15,13 @@ rgb_frame = grab()
 
 import dlib
 hogFaceDetector = dlib.get_frontal_face_detector()
-DS = 4
+
+# http://dlib.net/face_detector.py.html
+win = dlib.image_window()
+# http://dlib.net/face_landmark_detection.py.html
+# predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+# http://dlib.net/face_alignment.py.html
+predictor = dlib.shape_predictor('shape_predictor_5_face_landmarks.dat')
 
 import time
 while True:
@@ -24,12 +30,25 @@ while True:
     # Grab a single frame of video
     rgb_frame = grab()
 
+    win.clear_overlay()
+
+
+    win.set_image(rgb_frame)
+
     faceRects = hogFaceDetector(rgb_frame, 0)
     for faceRect in faceRects:
         x1 = faceRect.left()
         y1 = faceRect.top()
         x2 = faceRect.right()
         y2 = faceRect.bottom()
+        shape = predictor(rgb_frame, faceRect)
+        print(shape)
+        print("Part 0: {}, Part 1: {} ...".format(shape.part(0),
+                                                  shape.part(1)))
+        # Draw the face landmarks on the screen.
+        win.add_overlay(shape)
+    win.add_overlay(faceRects)
+    # dlib.hit_enter_to_continue()
 
     #cv2.imshow('Video', frame)# Hit ‘q’ on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
