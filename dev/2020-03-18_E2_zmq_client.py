@@ -8,7 +8,7 @@ import zmq
 context = zmq.Context()
 
 #  Socket to talk to server
-print("Connecting to hello world server…")
+print("Connecting to local server…")
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 

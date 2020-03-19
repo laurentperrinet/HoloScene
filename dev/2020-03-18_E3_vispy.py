@@ -16,7 +16,7 @@ class Canvas(app.Canvas):
         self.zmqcontext = zmq.Context()
 
         #  Socket to talk to server
-        print("Connecting to hello world server…")
+        print("Connecting to local server…")
         self.socket = self.zmqcontext.socket(zmq.REQ)
         self.socket.connect("tcp://localhost:5555")
 

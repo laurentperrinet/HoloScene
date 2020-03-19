@@ -19,14 +19,18 @@ class FaceExtractor:
         self.detector = dlib.get_frontal_face_detector()
         # http://dlib.net/face_alignment.py.html
         self.predictor = dlib.shape_predictor('shape_predictor_5_face_landmarks.dat')
-
+        self.S = (N_X**2 + N_Y**2)
 
     def get_bbox(self, frame):
         N_X, N_Y, three = frame.shape
         dets = self.detector(frame, 1)
         if len(dets) > 0:
             bbox = dets[0]
-            t, b, l, r = bbox.top(), bbox.bottom(), bbox.left(), bbox.right()
+            shape = self.predictor(frame, bbox)
+            # [(p.x, p.y) for p in shape.parts()]
+            coords = np.array([[p.x, p.y] for p in shape.parts()])
+            # t, b, l, r = bbox.top(), bbox.bottom(), bbox.left(), bbox.right()
+            t, b, l, r = coords[:, 1].min(), coords[:, 1].max(), coords[:, 0].min(), coords[:, 0].max()
             return t, b, l, r
         else:
             return 0, 0, 0, 0
@@ -35,7 +39,19 @@ class FaceExtractor:
         return t + (b-t)/2, l + (r-l)/2, (b-t)**2 + (r-l)**2
 
     def center_normalized(self, x, y, s):
-        return x/N_X, y/N_Y, s/(N_X**2 + N_Y**2)
+        """
+         (0, 0) ----------> Y (0, 1)
+         |
+         |     image coordinates
+         |
+         V
+
+         X (1, 0)
+
+         """
+
+
+        return x/N_X, y/N_Y/2, np.sqrt(s/self.S)
 
 f = FaceExtractor(N_X, N_Y)
 
