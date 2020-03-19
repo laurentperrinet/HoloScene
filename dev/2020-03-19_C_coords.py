@@ -69,6 +69,18 @@ class Canvas(app.Canvas):
         self.timer = app.Timer(connect=self.rotate)
         self.timer.start(0.016)
 
+        # https://github.com/NeuralEnsemble/MotionClouds/blob/master/MotionClouds/MotionClouds.py#L507
+        # self.view = mycanvas.central_widget.add_view()
+        # #self.view = self.add_view()
+        # elevation = 45
+        # azimuth = 0
+        # cam = scene.TurntableCamera(elevation=elevation, azimuth=azimuth, up='z')
+        # cam.fov = 48
+        # # cam.scale_factor = N_X * 1.8
+        # # margin = 1
+        # # cam.set_range((-N_X/2*margin, N_X/2/margin), (-N_Y/2*margin, N_Y/2/margin), (-N_frame/2*margin, N_frame/2/margin))
+        # self.view.camera = cam
+
     def rotate(self, event):
         # self.theta = self.x * self.THETA
         # self.phi = self.y * self.THETA
@@ -114,7 +126,6 @@ class Canvas(app.Canvas):
         x, y, s = x-.5, y-.5, s
         # print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
 
-        z = self.z0 * np.tan(self.s0 / 2 * self.VA) / np.tan(s / 2 * self.VA)
         z = self.z0 * self.s0 / s
         x = - z * np.tan(x * self.VA_X)
         y = - z * np.tan(y * self.VA_Y)
