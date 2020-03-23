@@ -5,10 +5,13 @@ import pyglet
 # print ("DEBUG: display client says platform" , platform)
 display = pyglet.canvas.get_display()
 print ("DEBUG: display client says display" , display)
+# print ("DEBUG: display client says screens" , display.get_size(), display.get_framebuffer_size())
 screens = display.get_screens()
 print ("DEBUG: display client says screens" , screens)
+
 for i, screen in enumerate(screens):
     print('Screen %d: %dx%d at (%d,%d)' % (i, screen.width, screen.height, screen.x, screen.y))
+
 N_screen = len(screens) # number of screens
 assert N_screen == 1 # we should be running on one screen only
 
@@ -41,25 +44,29 @@ win_0.set_visible(True)
 # scene geometry
 import numpy as np
 screen_height, screen_width, viewing_distance  = .30, .45, .60
+# https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+# fovy : Specifies the field of view angle, in degrees, in the y direction.
 # on calcule
-VA = 2. * np.arctan2(screen_width/2., viewing_distance) * 180. / np.pi
+VA = 2. * np.arctan2(screen_height/2., viewing_distance) * 180. / np.pi
 pc_min, pc_max = 0.001, 1000000.0
-# gl.gluPerspective(VA, 1.0*win_0.width/win_0.height, pc_min, pc_max)
+gl.gluPerspective(VA, 1.0*win_0.width/win_0.height, pc_min, pc_max)
 # gluLookAt(screen_height/2, screen_width/2, 0, screen_height/2, screen_width/2, viewing_distance, 0., 0, 1.0)
-#gl.glEnable(gl.GL_LINE_STIPPLE)
+gl.glEnable(gl.GL_LINE_STIPPLE)
 print(f'VA = {VA:.3f} deg')
-
 
 # opengl coordinates
 # https://unspecified.wordpress.com/2012/06/21/calculating-the-gluperspective-matrix-and-other-opengl-matrix-maths/
 N = 1000
 particles = np.zeros((6, N), dtype='f') # x, y, z, x, y, z
+# center
 particles[0:3, :] += np.array([screen_width/2, screen_height/2, 0])[:, None]
 particles[3:6, :] += np.array([screen_width/2, screen_height/2, 0])[:, None]
 # particles[0:3, :] += np.random.randn(3, N) * screen_height / 4
 # particles[3:6, :] += particles[0:3, :] + np.array([screen_height/8, 0, 0])[:, None]
+# scatter
 particles[0:2, :] += np.random.randn(2, N) * screen_height / 8
 # particles[3:5, :] += particles[0:2, :] + np.array([screen_height/8, 0])[:, None]
+# random height
 particles[3, :] = particles[0, :]
 particles[4, :] = particles[1, :]
 particles[5, :] = particles[2, :] + .23*np.random.rand(N)
