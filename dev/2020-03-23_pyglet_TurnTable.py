@@ -123,6 +123,7 @@ def on_draw():
 
     gl.glLineWidth(line_width)
 
+    # TODO : https://pyglet.readthedocs.io/en/latest/programming_guide/graphics.html#batched-rendering
     gl.glColor3f(1., 1., 1.)
     draw(2*N, gl.GL_LINES, ('v3f', particles.T.ravel().tolist()))
 
