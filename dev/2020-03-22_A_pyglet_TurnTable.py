@@ -1,5 +1,6 @@
 line_width = 3
 VERB = False
+VERB = True
 import pyglet
 # platform = pyglet.window.get_platform()
 # print ("DEBUG: display client says platform" , platform)
@@ -43,7 +44,7 @@ win_0.set_visible(True)
 
 # scene geometry
 import numpy as np
-screen_height, screen_width, viewing_distance  = .30, .45, .60
+screen_height, screen_width, viewing_distance  = .30, .45, .65
 # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
 # fovy : Specifies the field of view angle, in degrees, in the y direction.
 # on calcule
@@ -133,9 +134,11 @@ def callback(dt):
     toc = time.time() - tic
     # modul = 1 + .3 * np.sin(2*np.pi*toc*.1)
     # my_cx, my_cy, my_cz = screen_width/2, 2*screen_height/2, viewing_distance*modul
-    modul = 1 + .3 * np.sin(2*np.pi*toc*.1)
+    # modul = 1 + .3 * np.sin(2*np.pi*toc*.1)
     my_cx, my_cy, my_cz = screen_width/2 + viewing_distance*np.sin(2*np.pi*toc*.1), screen_height/2, viewing_distance*np.cos(2*np.pi*toc*.1)
-    if VERB: print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
+    if VERB:
+        print(f'x, y, z (Eye) = {my_cx:.3f}, {my_cy:.3f}, {my_cz:.3f}')
+        print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
 
 pyglet.clock.schedule(callback)
 pyglet.app.run()
