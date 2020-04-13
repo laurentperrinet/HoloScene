@@ -47,19 +47,50 @@ This example demonstrates:
  * Drawing simple 3D primitives using the pyglet.graphics API
  * Fixed-pipeline lighting
 """
+import numpy as np
+import zmq
+
+line_width = 3
+RESOLUTION = 1000
+z0 = .65 # in meter
+s0 = .15 # normalized unit
+VA_X = 30 * np.pi/180 # vertical visual angle (in radians) of the camera
+VA_Y = 45 * np.pi/180 # horizontal visual angle (in radians) of the camera
+screen_height, screen_width, viewing_distance  = .30, .45, z0
+
+#  Socket to talk to server
+zmqcontext = zmq.Context()
+print("Connecting to server…")
+socket = zmqcontext.socket(zmq.REQ)
+socket.connect("tcp://localhost:5555")
+
+def translate(message):
+    x, y, s = message.split(', ')
+    x, y, s = int(x), int(y), int(s) # str > int
+    x, y, s = x/RESOLUTION, y/RESOLUTION, s/RESOLUTION
+    x, y, s = x-.5, y-.5, s
+    print(f'x, y, s (norm) = {x:.3f}, {y:.3f}, {s:.3f}')
+
+    z = z0 * s0 / s
+    x = - z * np.tan(x * VA_X)
+    y = - z * np.tan(y * VA_Y)
+    print(f'x, y, z (Eye) = {x:.3f}, {y:.3f}, {z:.3f}')
+    return x, y, s
+
 
 from math import pi, sin, cos
 
 import pyglet
 from pyglet.gl import *
+import pyglet.gl as gl
+from pyglet.gl.glu import gluLookAt
 
-try:
-    # Try and create a window with multisampling (antialiasing)
-    config = Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
-    window = pyglet.window.Window(resizable=True, config=config)
-except pyglet.window.NoSuchConfigException:
-    # Fall back to no multisampling for old hardware
-    window = pyglet.window.Window(resizable=True)
+fullscreen = False
+fullscreen = True
+# Try and create a window with multisampling (antialiasing)
+config = gl.Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
+window = pyglet.window.Window(resizable=True, fullscreen=fullscreen, config=config)
+
 
 # Change the window projection to 3D:
 window.projection = pyglet.window.Projection3D()
@@ -67,13 +98,39 @@ window.projection = pyglet.window.Projection3D()
 
 @window.event
 def on_draw():
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
-    glTranslatef(0, 0, -4)
-    glRotatef(rz, 0, 0, 1)
-    glRotatef(ry, 0, 1, 0)
-    glRotatef(rx, 1, 0, 0)
+    gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    gl.glLoadIdentity()
+    gl.glTranslatef(0, 0, -4)
+    gl.glRotatef(rz, 0, 0, 1)
+    gl.glRotatef(ry, 0, 1, 0)
+    gl.glRotatef(rx, 1, 0, 0)
     batch.draw()
+#
+# def callback(dt):
+#     global my_cx, my_cy, my_cz
+#
+#     message = "ERROR"
+#     tic = time.time()
+#     #  Get the reply.
+#     while (message == "ERROR"):
+#         print("Sending request … GO!")
+#         socket.send(b"GO!")
+#         message = socket.recv()
+#         message = message.decode()
+#         print(message)
+#
+#         if message == "ERROR":
+#             print(message)
+#             sys.exit()
+#
+#     x, y, s = translate(message)
+#
+#     my_cx, my_cy, my_cz = screen_width/2 + y, screen_height/2 + x, z
+#
+#     # my_cx, my_cy, my_cz = screen_width/2 + viewing_distance*np.sin(2*np.pi*toc*.1), screen_height/2, viewing_distance*np.cos(2*np.pi*toc*.1)
+#     if VERB:
+#         print(f'x, y, z (Eye) = {my_cx:.3f}, {my_cy:.3f}, {my_cz:.3f}')
+#         print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
 
 
 def update(dt):
@@ -88,20 +145,20 @@ def update(dt):
 
 def setup():
     # One-time GL setup
-    glClearColor(1, 1, 1, 1)
-    glColor3f(1, 0, 0)
-    glEnable(GL_DEPTH_TEST)
-    glEnable(GL_CULL_FACE)
+    gl.glClearColor(1, 1, 1, 1)
+    gl.glColor3f(1, 0, 0)
+    gl.glEnable(GL_DEPTH_TEST)
+    gl.glEnable(GL_CULL_FACE)
 
     # Uncomment this line for a wireframe view
-    #glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+    # gl.glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
     # Simple light setup.  On Windows GL_LIGHT0 is enabled by default,
     # but this is not the case on Linux or Mac, so remember to always
     # include it.
-    glEnable(GL_LIGHTING)
-    glEnable(GL_LIGHT0)
-    glEnable(GL_LIGHT1)
+    gl.glEnable(GL_LIGHTING)
+    gl.glEnable(GL_LIGHT0)
+    gl.glEnable(GL_LIGHT1)
 
 
 def create_torus(radius, inner_radius, slices, inner_slices, batch):
