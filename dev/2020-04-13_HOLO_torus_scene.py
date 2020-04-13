@@ -47,6 +47,15 @@ This example demonstrates:
  * Drawing simple 3D primitives using the pyglet.graphics API
  * Fixed-pipeline lighting
 """
+# from math import pi, sin, cos
+
+import pyglet
+#from pyglet.gl import *
+import pyglet.gl as gl
+from pyglet.gl.glu import gluLookAt
+
+import sys
+import time
 import numpy as np
 import zmq
 
@@ -57,6 +66,13 @@ s0 = .15 # normalized unit
 VA_X = 30 * np.pi/180 # vertical visual angle (in radians) of the camera
 VA_Y = 45 * np.pi/180 # horizontal visual angle (in radians) of the camera
 screen_height, screen_width, viewing_distance  = .30, .45, z0
+VERB = True
+# https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+# fovy : Specifies the field of view angle, in degrees, in the y direction.
+# on calcule
+VA = 2. * np.arctan2(screen_height/2., viewing_distance) * 180. / np.pi
+pc_min, pc_max = 0.001, 1000000.0
+print(f'VA = {VA:.3f} deg')
 
 #  Socket to talk to server
 zmqcontext = zmq.Context()
@@ -75,15 +91,7 @@ def translate(message):
     x = - z * np.tan(x * VA_X)
     y = - z * np.tan(y * VA_Y)
     print(f'x, y, z (Eye) = {x:.3f}, {y:.3f}, {z:.3f}')
-    return x, y, s
-
-
-from math import pi, sin, cos
-
-import pyglet
-from pyglet.gl import *
-import pyglet.gl as gl
-from pyglet.gl.glu import gluLookAt
+    return x, y, z
 
 fullscreen = False
 fullscreen = True
@@ -91,64 +99,109 @@ fullscreen = True
 config = gl.Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
 window = pyglet.window.Window(resizable=True, fullscreen=fullscreen, config=config)
 
-
 # Change the window projection to 3D:
 window.projection = pyglet.window.Projection3D()
+# gl.gluPerspective(VA, 1.0*window.width/window.height, pc_min, pc_max)
 
+# def on_resize(width, height):
+#     gl.glViewport(0, 0, width*2, height*2) # HACK for retina display ?
+#     gl.glEnable(gl.GL_BLEND)
+#     gl.glShadeModel(gl.GL_SMOOTH)
+#     gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE)
+#     gl.glHint(gl.GL_PERSPECTIVE_CORRECTION_HINT, gl.GL_NICEST)#gl.GL_DONT_CARE)# gl.GL_NICEST)#
+#     # gl.glDisable(gl.GL_DEPTH_TEST)
+#     # gl.glDisable(gl.GL_LINE_SMOOTH)
+#     gl.glColor3f(1.0, 1.0, 1.0)
+#
+# window.on_resize = on_resize
+# window.set_visible(True)
+# window.set_mouse_visible(False)
+
+screen_particles = []
+screen_particles.append([0, 0, 0,
+                        screen_width, 0, 0])
+screen_particles.append([0, screen_height, 0,
+                        screen_width, screen_height, 0])
+screen_particles.append([screen_width, screen_height, 0,
+                        screen_width, 0, 0])
+screen_particles.append([0, 0, 0,
+                         0, screen_height, 0])
+screen_particles = np.array(screen_particles).T
 
 @window.event
 def on_draw():
-    gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    # global my_cx, my_cy, my_cz
+    gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
     gl.glLoadIdentity()
     gl.glTranslatef(0, 0, -4)
     gl.glRotatef(rz, 0, 0, 1)
     gl.glRotatef(ry, 0, 1, 0)
     gl.glRotatef(rx, 1, 0, 0)
-    batch.draw()
-#
-# def callback(dt):
-#     global my_cx, my_cy, my_cz
-#
-#     message = "ERROR"
-#     tic = time.time()
-#     #  Get the reply.
-#     while (message == "ERROR"):
-#         print("Sending request … GO!")
-#         socket.send(b"GO!")
-#         message = socket.recv()
-#         message = message.decode()
-#         print(message)
-#
-#         if message == "ERROR":
-#             print(message)
-#             sys.exit()
-#
-#     x, y, s = translate(message)
-#
-#     my_cx, my_cy, my_cz = screen_width/2 + y, screen_height/2 + x, z
-#
-#     # my_cx, my_cy, my_cz = screen_width/2 + viewing_distance*np.sin(2*np.pi*toc*.1), screen_height/2, viewing_distance*np.cos(2*np.pi*toc*.1)
-#     if VERB:
-#         print(f'x, y, z (Eye) = {my_cx:.3f}, {my_cy:.3f}, {my_cz:.3f}')
-#         print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
+    # window.clear()
 
+    # gl.glMatrixMode(gl.GL_MODELVIEW)
+    # gl.glLoadIdentity()
+    # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+    # fovy : Specifies the field of view angle, in degrees, in the y direction.
+    # aspect :Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y (height).
+    # zNear : Specifies the distance from the viewer to the near clipping plane (always positive).
+    # zFar : Specifies the distance from the viewer to the far clipping plane (always positive).
+    # VA = 2. * np.arctan2(screen_height/2., my_cz) * 180. / np.pi
+
+    # gl.gluPerspective(VA, window.width/window.height, pc_min, pc_max)
+    # # gluLookAt(eyex,eyey,eyez,centx,centy,centz,upx,upy,upz)
+    # gluLookAt(my_cx, my_cy, my_cz,
+    #           screen_width/2, screen_height/2, 0,
+    #           #0, 0, 0,
+    #           0, 1, 0)
+
+    batch.draw()
+
+    gl.glColor3f(0., 1., 0.)
+    gl.glLineWidth(4)
+    pyglet.graphics.draw(2*4, gl.GL_LINES, ('v3f', screen_particles.T.ravel().tolist()))
 
 def update(dt):
-    global rx, ry, rz
-    rx += dt * 1
-    ry += dt * 80
-    rz += dt * 30
-    rx %= 360
-    ry %= 360
-    rz %= 360
+    global my_cx, my_cy, my_cz
+
+    message = "ERROR"
+    tic = time.time()
+    #  Get the reply.
+    while (message == "ERROR"):
+        print("Sending request … GO!")
+        socket.send(b"GO!")
+        message = socket.recv()
+        message = message.decode()
+        print(message)
+
+        if message == "ERROR":
+            print(message)
+            sys.exit()
+
+    x, y, z = translate(message)
+    # my_cx, my_cy, my_cz = screen_width/2 + y, screen_height/2 + x, z
+    my_cx, my_cy, my_cz = y, x, z
+    if VERB:
+        print(f'x, y, z (Eye) = {my_cx:.3f}, {my_cy:.3f}, {my_cz:.3f}')
+        print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
+
+
+# def update(dt):
+#     global rx, ry, rz
+#     rx += dt * 1
+#     ry += dt * 80
+#     rz += dt * 30
+#     rx %= 360
+#     ry %= 360
+#     rz %= 360
 
 
 def setup():
     # One-time GL setup
     gl.glClearColor(1, 1, 1, 1)
     gl.glColor3f(1, 0, 0)
-    gl.glEnable(GL_DEPTH_TEST)
-    gl.glEnable(GL_CULL_FACE)
+    gl.glEnable(gl.GL_DEPTH_TEST)
+    gl.glEnable(gl.GL_CULL_FACE)
 
     # Uncomment this line for a wireframe view
     # gl.glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -156,27 +209,26 @@ def setup():
     # Simple light setup.  On Windows GL_LIGHT0 is enabled by default,
     # but this is not the case on Linux or Mac, so remember to always
     # include it.
-    gl.glEnable(GL_LIGHTING)
-    gl.glEnable(GL_LIGHT0)
-    gl.glEnable(GL_LIGHT1)
+    gl.glEnable(gl.GL_LIGHTING)
+    gl.glEnable(gl.GL_LIGHT0)
+    gl.glEnable(gl.GL_LIGHT1)
 
 
 def create_torus(radius, inner_radius, slices, inner_slices, batch):
-
     # Create the vertex and normal arrays.
     vertices = []
     normals = []
 
-    u_step = 2 * pi / (slices - 1)
-    v_step = 2 * pi / (inner_slices - 1)
+    u_step = 2 * np.pi / (slices - 1)
+    v_step = 2 * np.pi / (inner_slices - 1)
     u = 0.
     for i in range(slices):
-        cos_u = cos(u)
-        sin_u = sin(u)
+        cos_u = np.cos(u)
+        sin_u = np.sin(u)
         v = 0.
         for j in range(inner_slices):
-            cos_v = cos(v)
-            sin_v = sin(v)
+            cos_v = np.cos(v)
+            sin_v = np.sin(v)
 
             d = (radius + inner_radius * cos_v)
             x = d * cos_u
@@ -210,7 +262,7 @@ def create_torus(radius, inner_radius, slices, inner_slices, batch):
     group = pyglet.model.MaterialGroup(material=material)
 
     vertex_list = batch.add_indexed(len(vertices)//3,
-                                    GL_TRIANGLES,
+                                    gl.GL_TRIANGLES,
                                     group,
                                     indices,
                                     ('v3f/static', vertices),
@@ -218,10 +270,12 @@ def create_torus(radius, inner_radius, slices, inner_slices, batch):
 
     return pyglet.model.Model([vertex_list], [group], batch)
 
-
+# setup scene
 setup()
 batch = pyglet.graphics.Batch()
-torus_model = create_torus(1, 0.3, 50, 30, batch=batch)
+
+# torus_model = create_torus(1, 0.3, 50, 30, batch=batch)
+torus_model = create_torus(screen_width/2, screen_width/6, 50, 30, batch=batch)
 rx = ry = rz = 0
 
 pyglet.clock.schedule(update)
