@@ -32,6 +32,7 @@ win_0 = Window(screen=screens[0], fullscreen=fullscreen, resizable=True, vsync =
 import pyglet.gl as gl
 from pyglet.gl.glu import gluLookAt
 
+@window.event
 def on_resize(width, height):
     gl.glViewport(0, 0, width*2, height*2) # HACK for retina display ?
     gl.glEnable(gl.GL_BLEND)
@@ -41,6 +42,7 @@ def on_resize(width, height):
     # gl.glDisable(gl.GL_DEPTH_TEST)
     # gl.glDisable(gl.GL_LINE_SMOOTH)
     gl.glColor3f(1.0, 1.0, 1.0)
+    return pyglet.event.EVENT_HANDLED
 
 win_0.on_resize = on_resize
 win_0.set_visible(True)

@@ -50,6 +50,7 @@ This example demonstrates:
 # from math import pi, sin, cos
 
 import pyglet
+pyglet.options['debug_gl'] = False
 #from pyglet.gl import *
 import pyglet.gl as gl
 from pyglet.gl.glu import gluLookAt
@@ -71,7 +72,7 @@ VERB = True
 # fovy : Specifies the field of view angle, in degrees, in the y direction.
 # on calcule
 VA = 2. * np.arctan2(screen_height/2., viewing_distance) * 180. / np.pi
-pc_min, pc_max = 0.001, 1000000.0
+pc_min, pc_max = 0.1, 255.0
 print(f'VA = {VA:.3f} deg')
 
 #  Socket to talk to server
@@ -94,15 +95,15 @@ def translate(message):
     return x, y, z
 
 fullscreen = False
-fullscreen = True
+# fullscreen = True
 # Try and create a window with multisampling (antialiasing)
 config = gl.Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
 window = pyglet.window.Window(resizable=True, fullscreen=fullscreen, config=config)
 
 # Change the window projection to 3D:
-window.projection = pyglet.window.Projection3D()
-# gl.gluPerspective(VA, 1.0*window.width/window.height, pc_min, pc_max)
+window.projection = pyglet.window.Projection3D(fov=VA)
 
+# @window.event
 # def on_resize(width, height):
 #     gl.glViewport(0, 0, width*2, height*2) # HACK for retina display ?
 #     gl.glEnable(gl.GL_BLEND)
@@ -112,10 +113,14 @@ window.projection = pyglet.window.Projection3D()
 #     # gl.glDisable(gl.GL_DEPTH_TEST)
 #     # gl.glDisable(gl.GL_LINE_SMOOTH)
 #     gl.glColor3f(1.0, 1.0, 1.0)
-#
+    # glMatrixMode(gl.GL_MODELVIEW)
+#     return pyglet.event.EVENT_HANDLED
 # window.on_resize = on_resize
 # window.set_visible(True)
 # window.set_mouse_visible(False)
+
+gl.gluPerspective(VA, 1.0*window.width/window.height, pc_min, pc_max)
+
 
 screen_particles = []
 screen_particles.append([0, 0, 0,
