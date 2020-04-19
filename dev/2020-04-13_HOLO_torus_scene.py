@@ -138,27 +138,28 @@ def on_draw():
     # global my_cx, my_cy, my_cz
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
     gl.glLoadIdentity()
-    gl.glTranslatef(0, 0, -4)
-    gl.glRotatef(rz, 0, 0, 1)
-    gl.glRotatef(ry, 0, 1, 0)
-    gl.glRotatef(rx, 1, 0, 0)
+    gl.glTranslatef(1, 1, -4)
+    # print(rx, ry, rz)
+    # gl.glRotatef(rz, 0, 0, 1)
+    # gl.glRotatef(ry, 0, 1, 0)
+    # gl.glRotatef(rx, 1, 0, 0)
     # window.clear()
 
-    # gl.glMatrixMode(gl.GL_MODELVIEW)
-    # gl.glLoadIdentity()
+    gl.glMatrixMode(gl.GL_PROJECTION);
+    gl.glLoadIdentity()
     # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
     # fovy : Specifies the field of view angle, in degrees, in the y direction.
     # aspect :Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y (height).
     # zNear : Specifies the distance from the viewer to the near clipping plane (always positive).
     # zFar : Specifies the distance from the viewer to the far clipping plane (always positive).
     # VA = 2. * np.arctan2(screen_height/2., my_cz) * 180. / np.pi
-
-    # gl.gluPerspective(VA, window.width/window.height, pc_min, pc_max)
-    # # gluLookAt(eyex,eyey,eyez,centx,centy,centz,upx,upy,upz)
-    # gluLookAt(my_cx, my_cy, my_cz,
-    #           screen_width/2, screen_height/2, 0,
-    #           #0, 0, 0,
-    #           0, 1, 0)
+    gl.gluPerspective(VA, window.width/window.height, pc_min, pc_max)
+    # gluLookAt(eyex,eyey,eyez,centx,centy,centz,upx,upy,upz)
+    gluLookAt(my_cx, my_cy, my_cz,
+              screen_width/2, screen_height/2, 0,
+              #0, 0, 0,
+              0, 1, 0)
+    gl.glMatrixMode(gl.GL_MODELVIEW)
 
     batch.draw()
 
