@@ -55,6 +55,10 @@ pyglet.options['debug_gl'] = False
 import pyglet.gl as gl
 from pyglet.gl.glu import gluLookAt
 
+VERB = False
+VERB = True
+
+
 import sys
 import time
 import numpy as np
@@ -67,7 +71,6 @@ s0 = .15 # normalized unit
 VA_X = 30 * np.pi/180 # vertical visual angle (in radians) of the camera
 VA_Y = 45 * np.pi/180 # horizontal visual angle (in radians) of the camera
 screen_height, screen_width, viewing_distance  = .30, .45, z0
-VERB = True
 # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
 # fovy : Specifies the field of view angle, in degrees, in the y direction.
 # on calcule
@@ -95,15 +98,15 @@ def translate(message):
     return x, y, z
 
 fullscreen = False
-# fullscreen = True
+fullscreen = True
 # Try and create a window with multisampling (antialiasing)
 config = gl.Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
-window = pyglet.window.Window(resizable=True, fullscreen=fullscreen, config=config)
+window_0 = pyglet.window.Window(resizable=True, fullscreen=fullscreen, config=config)
 
 # Change the window projection to 3D:
-window.projection = pyglet.window.Projection3D(fov=VA)
+window_0.projection = pyglet.window.Projection3D(fov=VA)
 
-# @window.event
+# @window_0.event
 # def on_resize(width, height):
 #     gl.glViewport(0, 0, width*2, height*2) # HACK for retina display ?
 #     gl.glEnable(gl.GL_BLEND)
@@ -113,13 +116,13 @@ window.projection = pyglet.window.Projection3D(fov=VA)
 #     # gl.glDisable(gl.GL_DEPTH_TEST)
 #     # gl.glDisable(gl.GL_LINE_SMOOTH)
 #     gl.glColor3f(1.0, 1.0, 1.0)
-    # glMatrixMode(gl.GL_MODELVIEW)
+#     glMatrixMode(gl.GL_MODELVIEW)
 #     return pyglet.event.EVENT_HANDLED
-# window.on_resize = on_resize
-# window.set_visible(True)
-# window.set_mouse_visible(False)
+# window_0.on_resize = on_resize
+# window_0.set_visible(True)
+# window_0.set_mouse_visible(False)
 
-gl.gluPerspective(VA, 1.0*window.width/window.height, pc_min, pc_max)
+gl.gluPerspective(VA, 1.0*window_0.width/window_0.height, pc_min, pc_max)
 
 
 screen_particles = []
@@ -133,17 +136,17 @@ screen_particles.append([0, 0, 0,
                          0, screen_height, 0])
 screen_particles = np.array(screen_particles).T
 
-@window.event
+@window_0.event
 def on_draw():
     # global my_cx, my_cy, my_cz
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
     gl.glLoadIdentity()
-    gl.glTranslatef(1, 1, -4)
+    gl.glTranslatef(0, 0, 0)
     # print(rx, ry, rz)
     # gl.glRotatef(rz, 0, 0, 1)
     # gl.glRotatef(ry, 0, 1, 0)
     # gl.glRotatef(rx, 1, 0, 0)
-    # window.clear()
+    # window_0.clear()
 
     gl.glMatrixMode(gl.GL_PROJECTION);
     gl.glLoadIdentity()
@@ -153,7 +156,7 @@ def on_draw():
     # zNear : Specifies the distance from the viewer to the near clipping plane (always positive).
     # zFar : Specifies the distance from the viewer to the far clipping plane (always positive).
     # VA = 2. * np.arctan2(screen_height/2., my_cz) * 180. / np.pi
-    gl.gluPerspective(VA, window.width/window.height, pc_min, pc_max)
+    gl.gluPerspective(VA, window_0.width/window_0.height, pc_min, pc_max)
     # gluLookAt(eyex,eyey,eyez,centx,centy,centz,upx,upy,upz)
     gluLookAt(my_cx, my_cy, my_cz,
               screen_width/2, screen_height/2, 0,
@@ -166,30 +169,6 @@ def on_draw():
     gl.glColor3f(0., 1., 0.)
     gl.glLineWidth(4)
     pyglet.graphics.draw(2*4, gl.GL_LINES, ('v3f', screen_particles.T.ravel().tolist()))
-
-def update(dt):
-    global my_cx, my_cy, my_cz
-
-    message = "ERROR"
-    tic = time.time()
-    #  Get the reply.
-    while (message == "ERROR"):
-        print("Sending request … GO!")
-        socket.send(b"GO!")
-        message = socket.recv()
-        message = message.decode()
-        print(message)
-
-        if message == "ERROR":
-            print(message)
-            sys.exit()
-
-    x, y, z = translate(message)
-    # my_cx, my_cy, my_cz = screen_width/2 + y, screen_height/2 + x, z
-    my_cx, my_cy, my_cz = y, x, z
-    if VERB:
-        print(f'x, y, z (Eye) = {my_cx:.3f}, {my_cy:.3f}, {my_cz:.3f}')
-        print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
 
 
 # def update(dt):
@@ -284,6 +263,34 @@ batch = pyglet.graphics.Batch()
 torus_model = create_torus(screen_width/2, screen_width/6, 50, 30, batch=batch)
 rx = ry = rz = 0
 
-pyglet.clock.schedule(update)
+def update(dt):
+    global my_cx, my_cy, my_cz
 
+    message = "ERROR"
+    tic = time.time()
+    #  Get the reply.
+    while (message == "ERROR"):
+        print("Sending request … GO!")
+        socket.send(b"GO!")
+        message = socket.recv()
+        message = message.decode()
+        print(message)
+
+        if message == "ERROR":
+            print(message)
+            sys.exit()
+
+    x, y, z = translate(message)
+
+    toc = time.time()
+
+    print(f'FPS:{1/(toc-tic):.1f}')
+
+    my_cx, my_cy, my_cz = screen_width/2 + y, screen_height/2 + x, z
+    #my_cx, my_cy, my_cz = y, x, z
+    if VERB:
+        print(f'x, y, z (Eye) = {my_cx:.3f}, {my_cy:.3f}, {my_cz:.3f}')
+        print(f'DEBUG {pyglet.clock.get_fps():.3f}  fps')
+
+pyglet.clock.schedule(update)
 pyglet.app.run()
