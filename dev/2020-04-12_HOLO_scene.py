@@ -43,6 +43,7 @@ def translate(message):
     return x, y, z
 
 import pyglet
+import pyglet.gl as gl
 display = pyglet.canvas.get_display()
 print ("DEBUG: display client says display" , display)
 screens = display.get_screens()
@@ -58,7 +59,6 @@ fullscreen = False
 fullscreen = True
 window_0 = Window(screen=screens[0], fullscreen=fullscreen, resizable=True, vsync = True)
 # window_0.set_exclusive_mouse()
-import pyglet.gl as gl
 from pyglet.gl.glu import gluLookAt
 
 def on_resize(width, height):

@@ -49,18 +49,10 @@ This example demonstrates:
 """
 # from math import pi, sin, cos
 
-import pyglet
-pyglet.options['debug_gl'] = False
-#from pyglet.gl import *
-import pyglet.gl as gl
-from pyglet.gl.glu import gluLookAt
-
 VERB = False
 VERB = True
 
-
 import sys
-import time
 import numpy as np
 import zmq
 
@@ -77,6 +69,8 @@ screen_height, screen_width, viewing_distance  = .30, .45, z0
 VA = 2. * np.arctan2(screen_height/2., viewing_distance) * 180. / np.pi
 pc_min, pc_max = 0.1, 255.0
 print(f'VA = {VA:.3f} deg')
+
+
 
 #  Socket to talk to server
 zmqcontext = zmq.Context()
@@ -97,11 +91,17 @@ def translate(message):
     print(f'x, y, z (Eye) = {x:.3f}, {y:.3f}, {z:.3f}')
     return x, y, z
 
+import pyglet
+import pyglet.gl as gl
+pyglet.options['debug_gl'] = False
+from pyglet.window import Window
 fullscreen = False
 fullscreen = True
 # Try and create a window with multisampling (antialiasing)
 config = gl.Config(sample_buffers=1, samples=4, depth_size=16, double_buffer=True)
-window_0 = pyglet.window.Window(resizable=True, fullscreen=fullscreen, config=config)
+window_0 = Window(resizable=True, fullscreen=fullscreen, config=config)
+
+from pyglet.gl.glu import gluLookAt
 
 # Change the window projection to 3D:
 window_0.projection = pyglet.window.Projection3D(fov=VA)
@@ -136,9 +136,14 @@ screen_particles.append([0, 0, 0,
                          0, screen_height, 0])
 screen_particles = np.array(screen_particles).T
 
+# https://github.com/Yuriy-Leonov/Pyglet_z_axis_issue/blob/master/main.py
+
+
+from pyglet.graphics import draw
+
 @window_0.event
 def on_draw():
-    # global my_cx, my_cy, my_cz
+    global my_cx, my_cy, my_cz
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
     gl.glLoadIdentity()
     gl.glTranslatef(0, 0, 0)
@@ -148,21 +153,21 @@ def on_draw():
     # gl.glRotatef(rx, 1, 0, 0)
     # window_0.clear()
 
-    gl.glMatrixMode(gl.GL_PROJECTION);
+    gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glLoadIdentity()
     # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
     # fovy : Specifies the field of view angle, in degrees, in the y direction.
     # aspect :Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y (height).
     # zNear : Specifies the distance from the viewer to the near clipping plane (always positive).
     # zFar : Specifies the distance from the viewer to the far clipping plane (always positive).
-    # VA = 2. * np.arctan2(screen_height/2., my_cz) * 180. / np.pi
+    VA = 2. * np.arctan2(screen_height/2., my_cz) * 180. / np.pi
+
     gl.gluPerspective(VA, window_0.width/window_0.height, pc_min, pc_max)
     # gluLookAt(eyex,eyey,eyez,centx,centy,centz,upx,upy,upz)
     gluLookAt(my_cx, my_cy, my_cz,
               screen_width/2, screen_height/2, 0,
-              #0, 0, 0,
               0, 1, 0)
-    gl.glMatrixMode(gl.GL_MODELVIEW)
+    # gl.glMatrixMode(gl.GL_MODELVIEW)
 
     batch.draw()
 
@@ -260,8 +265,11 @@ setup()
 batch = pyglet.graphics.Batch()
 
 # torus_model = create_torus(1, 0.3, 50, 30, batch=batch)
-torus_model = create_torus(screen_width/2, screen_width/6, 50, 30, batch=batch)
+torus_model = create_torus(screen_width/4, screen_width/8, 50, 30, batch=batch)
 rx = ry = rz = 0
+
+import time
+tic = time.time()
 
 def update(dt):
     global my_cx, my_cy, my_cz
