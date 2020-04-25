@@ -18,6 +18,7 @@ screen_height, screen_width, viewing_distance  = .30, .45, z0
 # fovy : Specifies the field of view angle, in degrees, in the y direction.
 # on calcule
 VA = 2. * np.arctan2(screen_height/2., viewing_distance) * 180. / np.pi
+pc_min, pc_max = 0.1, 255.0
 pc_min, pc_max = 0.001, 1000000.0
 print(f'VA = {VA:.3f} deg')
 
