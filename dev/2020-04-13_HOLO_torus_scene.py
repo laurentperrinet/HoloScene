@@ -103,6 +103,8 @@ for i, screen in enumerate(screens):
 N_screen = len(screens) # number of screens
 assert N_screen == 1 # we should be running on one screen only
 
+# Disable error checking for increased performance
+pyglet.options['debug_gl'] = False
 
 from pyglet.window import Window
 fullscreen = False
@@ -124,6 +126,7 @@ def on_resize(width, height):
     # gl.glDisable(gl.GL_DEPTH_TEST)
     # gl.glDisable(gl.GL_LINE_SMOOTH)
     # gl.glColor3f(1.0, 1.0, 1.0)
+    return pyglet.event.EVENT_HANDLED
 
 window_0.on_resize = on_resize
 window_0.set_visible(True)
@@ -167,10 +170,19 @@ def on_draw():
     # gl.glRotatef(rx, 1, 0, 0)
     window_0.clear()
 
-    #gl.glMatrixMode(gl.GL_PROJECTION)
+
+    # gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glMatrixMode(gl.GL_MODELVIEW)
     gl.glLoadIdentity()
     # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+
+    # lighting
+    gl.glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, vec(screen_width/2*0, screen_height/2, -screen_height*2, 0))
+    # gl.glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, vec(.5, .5, 1))
+    # gl.glLightfv(gl.GL_LIGHT0, gl.GL_DIFFUSE, vec(1, 1, 1, 1))
+
+    gl.glLightfv(gl.GL_LIGHT1, gl.GL_POSITION, vec(screen_width/2*2, screen_height/2, screen_height*2, 0))
+
     # fovy : Specifies the field of view angle, in degrees, in the y direction.
     # aspect :Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y (height).
     # zNear : Specifies the distance from the viewer to the near clipping plane (always positive).
@@ -183,16 +195,19 @@ def on_draw():
               screen_width/2, screen_height/2, 0,
               0, 1, 0)
 
+    gl.glMatrixMode(gl.GL_MODELVIEW)
+
+
     batch.draw()
 
-    gl.glLineWidth(4)
-    # TODO : https://pyglet.readthedocs.io/en/latest/programming_guide/graphics.html#batched-rendering
-    gl.glColor3f(1., 1., 1.)
-
-    gl.glColor3f(1., 0., 0.)
-    draw(2*2, gl.GL_LINES, ('v3f', axis_particles.T.ravel().tolist()))
-
-    pyglet.graphics.draw(2*4, gl.GL_LINES, ('v3f', screen_particles.T.ravel().tolist()))
+    # gl.glLineWidth(4)
+    # # TODO : https://pyglet.readthedocs.io/en/latest/programming_guide/graphics.html#batched-rendering
+    # gl.glColor3f(1., 1., 1.)
+    #
+    # gl.glColor3f(1., 0., 0.)
+    # draw(2*2, gl.GL_LINES, ('v3f', axis_particles.T.ravel().tolist()))
+    #
+    # pyglet.graphics.draw(2*4, gl.GL_LINES, ('v3f', screen_particles.T.ravel().tolist()))
 
 
 # def update(dt):
@@ -204,11 +219,13 @@ def on_draw():
 #     ry %= 360
 #     rz %= 360
 
+def vec(*args):
+    return (gl.GLfloat * len(args))(*args)
 
 def setup():
     # One-time GL setup
-    lum = .5
-    gl.glClearColor(lum, lum, lum, 1)
+    lum = .1
+    # gl.glClearColor(lum, lum, lum, 1)
     # gl.glColor3f(1, 0, 0)
     gl.glEnable(gl.GL_DEPTH_TEST)
     gl.glEnable(gl.GL_CULL_FACE)
@@ -221,7 +238,7 @@ def setup():
     # include it.
     gl.glEnable(gl.GL_LIGHTING)
     gl.glEnable(gl.GL_LIGHT0)
-    gl.glEnable(gl.GL_LIGHT1)
+    # gl.glEnable(gl.GL_LIGHT1)
 
 
 def create_torus(radius, inner_radius, slices, inner_slices, batch):
@@ -285,7 +302,8 @@ setup()
 batch = pyglet.graphics.Batch()
 
 # torus_model = create_torus(1, 0.3, 50, 30, batch=batch)
-torus_model = create_torus(screen_width/8, screen_width/12, 50, 30, batch=batch)
+torus_model = create_torus(screen_width/8, screen_width/24, 50, 30, batch=batch)
+
 rx = ry = rz = 0
 
 import time

@@ -54,6 +54,8 @@ for i, screen in enumerate(screens):
 N_screen = len(screens) # number of screens
 assert N_screen == 1 # we should be running on one screen only
 
+# Disable error checking for increased performance
+pyglet.options['debug_gl'] = False
 
 from pyglet.window import Window
 fullscreen = False
@@ -71,6 +73,7 @@ def on_resize(width, height):
     # gl.glDisable(gl.GL_DEPTH_TEST)
     # gl.glDisable(gl.GL_LINE_SMOOTH)
     gl.glColor3f(1.0, 1.0, 1.0)
+    return pyglet.event.EVENT_HANDLED
 
 window_0.on_resize = on_resize
 window_0.set_visible(True)
@@ -137,6 +140,7 @@ def on_draw():
 
     window_0.clear()
 
+    # gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glMatrixMode(gl.GL_MODELVIEW)
     gl.glLoadIdentity()
     # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
