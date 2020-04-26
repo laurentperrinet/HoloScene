@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
@@ -117,13 +117,13 @@ from pyglet.gl.glu import gluLookAt
 
 def on_resize(width, height):
     gl.glViewport(0, 0, width*2, height*2) # HACK for retina display ?
-    gl.glEnable(gl.GL_BLEND)
+    # gl.glEnable(gl.GL_BLEND)
     gl.glShadeModel(gl.GL_SMOOTH)
     gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE)
     gl.glHint(gl.GL_PERSPECTIVE_CORRECTION_HINT, gl.GL_NICEST)#gl.GL_DONT_CARE)# gl.GL_NICEST)#
     # gl.glDisable(gl.GL_DEPTH_TEST)
     # gl.glDisable(gl.GL_LINE_SMOOTH)
-    gl.glColor3f(1.0, 1.0, 1.0)
+    # gl.glColor3f(1.0, 1.0, 1.0)
 
 window_0.on_resize = on_resize
 window_0.set_visible(True)
