@@ -172,9 +172,6 @@ def on_draw():
 
     gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glLoadIdentity()
-
-    gl.glMatrixMode(gl.GL_MODELVIEW)
-    gl.glLoadIdentity()
     # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
 
     # fovy : Specifies the field of view angle, in degrees, in the y direction.
@@ -184,6 +181,9 @@ def on_draw():
     VA = 2. * np.arctan2(screen_height/2., my_cz) * 180. / np.pi
 
     gl.gluPerspective(VA, window_0.width/window_0.height, pc_min, pc_max)
+
+    gl.glMatrixMode(gl.GL_MODELVIEW)
+    gl.glLoadIdentity()
     # gluLookAt(eyex,eyey,eyez,centx,centy,centz,upx,upy,upz)
     gluLookAt(my_cx, my_cy, my_cz,
               screen_width/2, screen_height/2, 0,
