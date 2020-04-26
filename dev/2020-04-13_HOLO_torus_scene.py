@@ -231,7 +231,7 @@ def setup():
     gl.glEnable(gl.GL_CULL_FACE)
 
     # Uncomment this line for a wireframe view
-    # gl.glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+    gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
 
     # Simple light setup.  On Windows GL_LIGHT0 is enabled by default,
     # but this is not the case on Linux or Mac, so remember to always
@@ -260,7 +260,7 @@ def create_torus(radius, inner_radius, slices, inner_slices, batch):
             d = (radius + inner_radius * cos_v)
             x = screen_width/2 + d * cos_u
             y = screen_height/2 + d * sin_u
-            z = screen_height/4 + inner_radius * sin_v
+            z = screen_height*0.5 + inner_radius * sin_v
 
             nx = cos_u * cos_v
             ny = sin_u * cos_v
@@ -302,7 +302,7 @@ setup()
 batch = pyglet.graphics.Batch()
 
 # torus_model = create_torus(1, 0.3, 50, 30, batch=batch)
-torus_model = create_torus(screen_width/8, screen_width/24, 50, 30, batch=batch)
+torus_model = create_torus(screen_width/10, screen_width/24, 50, 30, batch=batch)
 
 rx = ry = rz = 0
 
