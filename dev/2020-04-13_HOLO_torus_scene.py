@@ -170,18 +170,12 @@ def on_draw():
     # gl.glRotatef(rx, 1, 0, 0)
     window_0.clear()
 
+    gl.glMatrixMode(gl.GL_PROJECTION)
+    gl.glLoadIdentity()
 
-    # gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glMatrixMode(gl.GL_MODELVIEW)
     gl.glLoadIdentity()
     # https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
-
-    # lighting
-    gl.glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, vec(screen_width/2*0, screen_height/2, -screen_height*2, 0))
-    # gl.glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, vec(.5, .5, 1))
-    # gl.glLightfv(gl.GL_LIGHT0, gl.GL_DIFFUSE, vec(1, 1, 1, 1))
-
-    gl.glLightfv(gl.GL_LIGHT1, gl.GL_POSITION, vec(screen_width/2*2, screen_height/2, screen_height*2, 0))
 
     # fovy : Specifies the field of view angle, in degrees, in the y direction.
     # aspect :Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y (height).
@@ -195,7 +189,14 @@ def on_draw():
               screen_width/2, screen_height/2, 0,
               0, 1, 0)
 
-    gl.glMatrixMode(gl.GL_MODELVIEW)
+    # gl.glMatrixMode(gl.GL_MODELVIEW)
+
+    # lighting
+    gl.glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, vec(screen_width/2*0, screen_height/2, -screen_height*.0, 0))
+    # gl.glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, vec(.5, .5, 1))
+    # gl.glLightfv(gl.GL_LIGHT0, gl.GL_DIFFUSE, vec(1, 1, 1, 1))
+
+    gl.glLightfv(gl.GL_LIGHT1, gl.GL_POSITION, vec(screen_width/2*2, screen_height/2, screen_height*.2, 0))
 
 
     batch.draw()
@@ -231,14 +232,14 @@ def setup():
     gl.glEnable(gl.GL_CULL_FACE)
 
     # Uncomment this line for a wireframe view
-    gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
+    # gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
 
     # Simple light setup.  On Windows GL_LIGHT0 is enabled by default,
     # but this is not the case on Linux or Mac, so remember to always
     # include it.
     gl.glEnable(gl.GL_LIGHTING)
     gl.glEnable(gl.GL_LIGHT0)
-    # gl.glEnable(gl.GL_LIGHT1)
+    gl.glEnable(gl.GL_LIGHT1)
 
 
 def create_torus(radius, inner_radius, slices, inner_slices, batch):
